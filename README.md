@@ -1,7 +1,7 @@
 
 
 ### Hi there! 🌞
-I’m **[John]([https://vercel.app](https://jnguyen-ai-engineer.vercel.app/))**
+I’m **[John](https://jnguyen-ai-engineer.vercel.app/)**
 , an AI solutions engineer in ATL.
 
 I like to build tools to solve problems and automate boring tasks.
