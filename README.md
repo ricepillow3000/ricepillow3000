@@ -1,6 +1,6 @@
 
 
-### Hi there! 🌞
+### Hi there! 🫪
 I’m **[John](https://jnguyen-ai-engineer.vercel.app/)**
 , an AI solutions engineer in ATL.
 
