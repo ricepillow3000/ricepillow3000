@@ -1,16 +1,28 @@
-## Hi there 👋
 
-<!--
-**ricepillow3000/ricepillow3000** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
-Here are some ideas to get you started:
+### Hi there! 🌞
+I’m **[John](https://vercel.app)**
+, an AI solutions engineer in ATL.
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+I like to build tools to solve problems and automate boring tasks.
+
+Currently working on an Excel add-on tool because I find **[Excel](https://github.com/ricepillow3000/excel-anomaly-hunter)**
+ to be so soul-sucking.
+
+If a problem pops up in my head, there is a good chance I will build and ship it.
+_________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+### My Stack 🛠️
+* **Main Stack:** Python, Supabase, Cloudflare, Railway
+* **Design Stack:** OpenAI, Nano Banana, iPad to draw designs
+* **Favorite Tools:** Claude Code, Gemini
+_________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+### 🚀 Goals & Collaboration
+* I've got a few repos, public and private... the goal is to hit **100 repos**!
+* If you are interested in a collaboration, let me know!
+_________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+### Fun Facts About Me ⚡
+• 🥁Hobbies: Drums, PC building, Gym
+
+• 🤖Pacific Rim is my favorite movie
+
+• 🐝Genuinely terrified of bees.
