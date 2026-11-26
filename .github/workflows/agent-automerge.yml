@@ -1,0 +1,91 @@
+# A ready claude/ PR squash-merges itself once its gate and every other check pass.
+name: Agent auto-merge
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  checks: read
+  "statuses": read  # quoted bc the action-pin tests regex would read this key as a step lol
+
+concurrency:
+  group: agent-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  GATE: ""
+  # push workflows to dispatch after the merge, space-separated (a GITHUB_TOKEN merge never fires them)
+  AFTER_MERGE: ""
+
+jobs:
+  automerge:
+    if: >-
+      startsWith(github.head_ref, 'claude/') &&
+      !github.event.pull_request.draft &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+      SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
+        with:
+          persist-credentials: false
+
+      - name: Gate
+        if: env.GATE != ''
+        run: eval "$GATE"
+
+      - name: No Claude lines in the commits
+        run: |
+          msgs=$(gh api --paginate "repos/$GH_REPO/pulls/$PR/commits?per_page=100" --jq '.[].commit.message')
+          if grep -inE 'co-authored-by:.*claude|claude-session:|claude\.ai/code/session' <<<"$msgs"; then
+            echo "::error::a commit carries a Claude line"
+            exit 1
+          fi
+
+      - name: Wait for every other check
+        run: |
+          sleep 30  # first look at 60 s so slow-to-queue workflows show up first
+          for _ in $(seq 120); do
+            sleep 30
+            # two separate calls so a failed api call kills the step instead of looking like "nothing pending" lol
+            runs=$(gh api --paginate "repos/$GH_REPO/commits/$SHA/check-runs?per_page=100" \
+                     --jq '.check_runs[] | select(.name != "automerge") | "\(.status) \(.conclusion) \(.name)"')
+            stats=$(gh api "repos/$GH_REPO/commits/$SHA/status" --jq '.statuses[] | "\(.state) \(.context)"')
+            all=$(printf '%s\n%s' "$runs" "$stats")
+            bad=$(grep -E '^(completed (failure|cancelled|timed_out|action_required|startup_failure|stale)|failure|error) ' <<<"$all" || true)
+            if [ -n "$bad" ]; then echo "::error::failed: $bad"; exit 1; fi
+            grep -qvE '^(completed|success) |^$' <<<"$all" || exit 0
+          done
+          echo "::error::checks still running after 60 min"
+          exit 1
+
+      - name: Squash-merge
+        id: merge
+        run: |
+          if [ "$(gh pr view "$PR" --json isDraft -q .isDraft)" != false ]; then
+            echo "::notice::back to draft, not merging"
+            exit 0
+          fi
+          title=$(gh pr view "$PR" --json title -q .title)
+          body=$(gh pr view "$PR" --json body -q .body)
+          body=$(grep -viE '^🤖 Generated with|claude\.ai/code/session|^Co-Authored-By:.*Claude|^Claude-Session:' <<<"$body" || true)
+          gh pr merge "$PR" --squash --match-head-commit "$SHA" --subject "$title (#$PR)" --body "$body"
+          echo "merged=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run the push workflows the merge skipped
+        if: steps.merge.outputs.merged == 'true' && env.AFTER_MERGE != ''
+        env:
+          BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          for w in $AFTER_MERGE; do
+            gh workflow run "$w" --ref "$BASE"
+          done
